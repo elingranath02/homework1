@@ -5,7 +5,23 @@ int numberOfQueens = 0;
 int x = 0;
 int y = 0;
 
-int solutions = 0;
+int placeQueens(int board[8][8], int row)
+{
+    int a = row;
+    int b = 0;
+
+    while (b < 8)
+    {
+        if (board[a][b] == 0)
+        {
+            board[a][b] = 1;
+            numberOfQueens++;
+            return b;
+        }
+        b++;
+    }
+    return -1;
+}
 
 int diagonal(int board[8][8], int m, int n, int mode, int row, int col)
 {
@@ -39,6 +55,46 @@ int diagonal(int board[8][8], int m, int n, int mode, int row, int col)
     return 1;
 }
 
+int scanBoard(int board[8][8])
+{
+    int availableSlots = 0;
+    for (int i = 0; i < 8; i++)
+    {
+        int notAvailableSlots = 0;
+        for (int j = 0; j < 8; j++)
+        {
+            if(board[i][j] == 1){
+                break;
+            }
+            if (board[i][j] == 0)
+            {
+                availableSlots++;
+            }else if(board[i][j] == 2)
+            { notAvailableSlots++;
+            }
+        }
+        
+        if (notAvailableSlots > 7) {
+            printf("Row %d is full (not available): %d slots\n", i, notAvailableSlots);
+            return 0;
+        }
+    }
+
+    if (availableSlots >= (8 - numberOfQueens))
+    {
+        return 1;
+    }
+    else
+        return 0;
+}
+
+void markUnavailableSpots(int board[8][8])
+{
+}
+
+void queenPosition(int *board)
+{
+}
 
 int searchStraight(int board[8][8], int row, int col)
 {
@@ -103,6 +159,20 @@ void markStraight(int board[8][8], int row, int col)
     }
 }
 
+void removeLastQueen(int board[8][8], int row, int col){
+        board[row][col] = 2;
+        numberOfQueens--;
+}
+
+void removeLastQueenAndMarks(int board[8][8], int row, int col){
+        board[row][col] = 2;
+        numberOfQueens--;
+        diagonal(board, 1, 1, 2, row, col);
+        diagonal(board, -1, 1, 2, row, col);
+        diagonal(board, 1, -1, 2, row, col);
+        diagonal(board, -1, -1, 2, row, col);
+        markStraight(board, row, col);
+}
 
 int mark(int board[8][8], int row, int col)
 {
@@ -126,7 +196,6 @@ int mark(int board[8][8], int row, int col)
 
 void recursive(int board[8][8], int row, int col)
 {
-
     if(numberOfQueens == 8){
         for (int j = 0; j < 8; j++)
     {
@@ -139,7 +208,6 @@ void recursive(int board[8][8], int row, int col)
 
     }
     printf("%s", "\n");
-    solutions++;
     return;
     }
 
@@ -154,18 +222,32 @@ void recursive(int board[8][8], int row, int col)
             board[row][col] = 0;
             numberOfQueens--;
         }
-    }
 }
+
 
 int main()
 {
 
     int board[8][8] = {0};
 
+    int i = 0;
+    int j = 0;
+
     recursive(board, x,y);
 
-    printf("%s", "NUMBER OF SOLUTIONS: ");
-    printf("%d\n", solutions);
+    //placeQueens(board);
+    //mark(board);
+    //placeQueens(board);
+    //mark(board);
+    //placeQueens(board);
+    //mark(board);
+    //placeQueens(board);
+    //mark(board);
+    //placeQueens(board);
+    //mark(board);
+
+    printf("%s", "NUMBER OF QUEENS: ");
+    printf("%d\n", numberOfQueens);
 
     return 0;
 }

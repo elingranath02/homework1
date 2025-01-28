@@ -33,3 +33,26 @@ void* Hello(void* rank) {
     printf("Hello from thread %ld of %d\n", my_rank, thread_count);
     return NULL;
 } /* Hello */
+
+/*int i = row;
+    int j = col;
+    int k = col;
+
+    while ((i >= 0 && j >= 0 && j <= 7) || (k >= 0 && k >= 0 && k <= 7)) {
+        if (boards[thread_num][i][j] == 1 || boards[thread_num][i][k] == 1) {
+            return 0;
+        }
+        i = i - 1;
+        j = j + 1;
+        k = k - 1;
+    }
+    int a = row;
+
+    while (a >= 0) {
+        if (boards[thread_num][a][col] == 1) {
+            return 0;
+        }
+        a--;
+    }
+
+    return 1;*/

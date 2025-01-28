@@ -1,0 +1,41 @@
+Homework 1
+
+The 8 queens problem was firstly solved sequentially. The code included one recursive method and a scan method that checked if
+the queen placements were valid. The recursive method considered all possible combinations of queen placements by going from the
+top to the bottom. This meant that the diagonal and vertical scans only included the rows above the considered queen placement.
+Later, the algorithm was parallelized by adding multiple threads. A pipeline was created with several worker threads. 
+One main thread was placing the queens and the others checked if the placement was correct. One thread controlled
+the upper left diagonal, another the upper right diagonal and one thread checked vertically above the possible queen placement.
+When timing the execution, the runtime did not improve and was instead increased by a lot. Another more effective way 
+of parallelizing the code was to have one working thread per column in the board.
+Since the threads could run independently and in parallel if they had their own boards, one thread could generate all of the results when
+the first queen was placed on "a1" and another thread could generate the results when the first queen was placed on "b1" and so on.
+This resulted in the need of using mutexes for locking both the variable keeping track of the number of solutions,
+and the method for printing the board. When using 8 different threads, the execution time was much better than the
+first parallelized code but had not improved from the sequential code. The second program was around 200x faster than the first
+parallelized program but half as fast as the sequential code.
+
+
+-------------------------- Benchmarks --------------------------
+        Sequential                    Parallelized
+
+Value of N | Runtime (ms)      Value of N | Runtime (ms)
+-----------------------       ---------------------------------
+    8      |  1687                8       |     2176  
+-----------------------       ---------------------------------
+    9      |  8286                9       |     9891
+-----------------------       ---------------------------------
+   10      |  26257               10      |     29160
+-----------------------       ---------------------------------
+   11      |  125355              11      |     149839 
+-----------------------       ---------------------------------
+   12      |  758105              12      |     891529
+
+-----------------------------------------------------------------
+
+
+Minimum time of 10 executions
+
+You upload your homework in a zip file before or on the date the assignment is due. For each homework,
+you deliver the source code and a short report describing your solution and performance evaluation results, if any.
+

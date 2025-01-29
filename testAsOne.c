@@ -79,9 +79,9 @@ void recursive(int thread_num, int row) {
     }
 }
 
-void *thread_values(void *args) {
-    recursive(*(int *)args, 1);
-    free(args);
+void *thread_values(args) {
+    recursive(args, 1);
+    // free(args);
     return NULL;
 }
 
@@ -96,15 +96,32 @@ int main() {
         placeFirstQueens();
         pthread_mutex_init(&lock, NULL);
         start = clock();
+        int a = 0;
+        int b = 1;
+        int c = 2;
+        int d = 3;
+        int e = 4;
+        int f = 5;
+        int g = 6;
+        int h = 7;
 
-        for (int i = 0; i < N; i++) {
-            int *args = malloc(sizeof(int));
-            *args = i;
-            pthread_create(&threads[i], NULL, thread_values, (void *)args);
-        }
-        for (int i = 0; i < N; i++) {
-            pthread_join(threads[i], NULL);
-        }
+        pthread_create(&threads[0], NULL, thread_values, a);
+        pthread_create(&threads[1], NULL, thread_values, b);
+        pthread_create(&threads[2], NULL, thread_values, c);
+        pthread_create(&threads[3], NULL, thread_values, d);
+        pthread_create(&threads[4], NULL, thread_values, e);
+        pthread_create(&threads[5], NULL, thread_values, f);
+        pthread_create(&threads[6], NULL, thread_values, g);
+        pthread_create(&threads[7], NULL, thread_values, h);
+
+        pthread_join(threads[0], NULL);
+        pthread_join(threads[1], NULL);
+        pthread_join(threads[2], NULL);
+        pthread_join(threads[3], NULL);
+        pthread_join(threads[4], NULL);
+        pthread_join(threads[5], NULL);
+        pthread_join(threads[6], NULL);
+        pthread_join(threads[7], NULL);
 
         pthread_mutex_destroy(&lock);
         end = clock();

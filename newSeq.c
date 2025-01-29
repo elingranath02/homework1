@@ -1,7 +1,10 @@
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/time.h>
+#include <time.h>
 
-#define N 12
+#define N 8
 
 int solutions = 0;
 
@@ -42,6 +45,18 @@ int scan(int board[N][N], int row, int col) {
     }
 }
 
+double read_timer() {
+    static bool initialized = false;
+    static struct timeval start;
+    struct timeval end;
+    if (!initialized) {
+        gettimeofday(&start, NULL);
+        initialized = true;
+    }
+    gettimeofday(&end, NULL);
+    return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
+}
+
 void print(int board[N][N]) {
     printf("Solution %d\n", solutions + 1);
     for (int j = 0; j < N; j++) {
@@ -56,8 +71,8 @@ void print(int board[N][N]) {
 
 void recursive(int board[N][N], int row) {
     if (row == N) {
-        /* print(board);
-            solutions++;*/
+        print(board);
+        solutions++;
         return;
     }
 
@@ -71,32 +86,33 @@ void recursive(int board[N][N], int row) {
 }
 
 int main() {
-    clock_t start, end;
-    double cpu_time_used;
-    // int time = __INT_MAX__;
-    int time = 0;
+    double start, end;
+    // double cpu_time_used;
+    //  int time = __INT_MAX__;
+    double time = 0;
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 10; i++) {
         solutions = 0;
-        start = clock();
+        start = read_timer();
         int board[N][N] = {0};
         recursive(board, 0);
-        end = clock();
-        cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-        int microTime = (cpu_time_used * 1000000);
+        end = read_timer();
+        // cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+        //  int microTime = (cpu_time_used * 1000000);
 
-        time += microTime;
+        double times = end - start;
+        time += times;
 
         /*if (microTime < time) {
             time = microTime;
         }*/
     }
 
-    time /= 100;
+    time = (time / 10) * 1000000;
 
     printf("%s", "NUMBER OF SOLUTIONS: ");
     printf("%d\n", solutions);
-    printf("TIME: %0.3d microseconds", time);
+    printf("TIME: %0.3f microseconds", time);
 
     return 0;
 }

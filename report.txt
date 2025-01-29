@@ -16,26 +16,19 @@ first parallelized code but had not improved from the sequential code. The secon
 parallelized program but half as fast as the sequential code.
 
 
--------------------------- Benchmarks --------------------------
-        Sequential                    Parallelized
+----------------------------------------------- Benchmarks -------------------------------------------
+        Sequential                Parallelized N threads              Parallelized N/2 threads
 
-Value of N | Runtime (ms)      Value of N | Runtime (ms)
------------------------       ---------------------------------
-    8      |  1687                8       |     2176  
------------------------       ---------------------------------
-    9      |  8286                9       |     9891
------------------------       ---------------------------------
-   10      |  26257               10      |     29160
------------------------       ---------------------------------
-   11      |  125355              11      |     149839 
------------------------       ---------------------------------
-   12      |  758105              12      |     891529
+Value of N | Runtime (ms)      Value of N | Runtime (ms)           Value of N | Runtime (ms)
+-----------------------       ---------------------------------    --------------------------------
+    8      |  4802                8       |     5309                   8      |       2102
+-----------------------       ---------------------------------    ---------------------------------
+    9      |  15646                9      |     16994                  9      |          -
+-----------------------       ---------------------------------    ---------------------------------
+   10      |  40573               10      |     37625                 10      |       26143
+-----------------------       ---------------------------------    ----------------------------------
+   11      |  166019              11      |     134858                11      |          -
 
------------------------------------------------------------------
-
-
-Minimum time of 10 executions
-
-You upload your homework in a zip file before or on the date the assignment is due. For each homework,
-you deliver the source code and a short report describing your solution and performance evaluation results, if any.
+------------------------------------------------------------------------------------------------------
+The minimum time of 10 executions
 

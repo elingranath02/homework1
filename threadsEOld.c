@@ -80,8 +80,13 @@ void recursive(int thread_num, int row) {
 }
 
 void *thread_values(void *args) {
-    recursive(*(int *)args, 1);
+    int *argument = (void *)args;
+    int thread_num = argument[0];
+    int row = argument[1];
+
+    recursive(thread_num, row);
     free(args);
+
     return NULL;
 }
 
@@ -98,9 +103,10 @@ int main() {
         start = clock();
 
         for (int i = 0; i < N; i++) {
-            int *args = malloc(sizeof(int));
-            *args = i;
-            pthread_create(&threads[i], NULL, thread_values, (void *)args);
+            int *args = malloc(2 * sizeof(int));
+            args[0] = i;
+            args[1] = 1;
+            pthread_create(&threads[i], NULL, thread_values, args);
         }
         for (int i = 0; i < N; i++) {
             pthread_join(threads[i], NULL);

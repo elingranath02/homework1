@@ -1,7 +1,9 @@
 #include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <time.h>
 
 #define N 8
 
@@ -9,6 +11,7 @@ int solutions = 0;
 pthread_t threads[N];
 int boards[N][N][N] = {{{0}}};
 pthread_mutex_t lock;
+int thread_args[N];
 
 int diagonal(int n, int row, int col, int thread_num) {
     int i = row;
@@ -81,44 +84,51 @@ void recursive(int thread_num, int row) {
 
 void *thread_values(void *args) {
     recursive(*(int *)args, 1);
-    free(args);
     return NULL;
 }
 
+double read_timer() {
+    static bool initialized = false;
+    static struct timeval start;
+    struct timeval end;
+    if (!initialized) {
+        gettimeofday(&start, NULL);
+        initialized = true;
+    }
+    gettimeofday(&end, NULL);
+    return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
+}
+
 int main() {
-    clock_t start, end;
-    double cpu_time_used;
+    double start, end;
+    double minTime = 0;
 
-    int minTime = __INT_MAX__;
-
-    for (int i = 0; i <= 100; i++) {
+    for (int i = 0; i <= 10; i++) {
         solutions = 0;
         placeFirstQueens();
         pthread_mutex_init(&lock, NULL);
-        start = clock();
+        start = read_timer();
 
         for (int i = 0; i < N; i++) {
-            int *args = malloc(sizeof(int));
-            *args = i;
-            pthread_create(&threads[i], NULL, thread_values, (void *)args);
+            thread_args[i] = i;
+            pthread_create(&threads[i], NULL, thread_values,
+                           (void *)&thread_args[i]);
         }
         for (int i = 0; i < N; i++) {
             pthread_join(threads[i], NULL);
         }
 
         pthread_mutex_destroy(&lock);
-        end = clock();
-        cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-        int microTime = (cpu_time_used * 1000000);
+        end = read_timer();
+        double time = end - start;
 
-        if (microTime < minTime) {
-            minTime = microTime;
-        }
+        minTime += time;
     }
 
+    minTime = (minTime / 10) * 1000000;
     printf("%s", "NUMBER OF SOLUTIONS: ");
     printf("%d\n", solutions);
-    printf("TIME: %0.3d microseconds", minTime);
+    printf("TIME: %0.3f microseconds", minTime);
 
     return 0;
 }

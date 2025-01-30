@@ -1,9 +1,11 @@
 #include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <time.h>
 
-#define N 10
+#define N 8
 
 int solutions = 0;
 pthread_t threads[N];
@@ -61,6 +63,18 @@ void placeFirstQueens() {
     }
 }
 
+double read_timer() {
+    static bool initialized = false;
+    static struct timeval start;
+    struct timeval end;
+    if (!initialized) {
+        gettimeofday(&start, NULL);
+        initialized = true;
+    }
+    gettimeofday(&end, NULL);
+    return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
+}
+
 void recursive(int thread_num, int row) {
     if (row == N) {
         pthread_mutex_lock(&lock);
@@ -86,16 +100,19 @@ void *thread_values(void *args) {
 }
 
 int main() {
-    clock_t start, end;
-    double cpu_time_used;
+    double end, start;
 
-    int minTime = __INT_MAX__;
+    double minTime = 0;
+
+    for (int i = 0; i < 10000; i++) {
+        printf("%d", i);
+    }
 
     for (int i = 0; i <= 100; i++) {
         solutions = 0;
         placeFirstQueens();
         pthread_mutex_init(&lock, NULL);
-        start = clock();
+        start = read_timer();
 
         for (int i = 0; i < N; i++) {
             int *args = malloc(sizeof(int));
@@ -107,18 +124,14 @@ int main() {
         }
 
         pthread_mutex_destroy(&lock);
-        end = clock();
-        cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-        int microTime = (cpu_time_used * 1000000);
+        end = read_timer();
 
-        if (microTime < minTime) {
-            minTime = microTime;
-        }
+        minTime += (end - start);
     }
 
     printf("%s", "NUMBER OF SOLUTIONS: ");
     printf("%d\n", solutions);
-    printf("TIME: %0.3d microseconds", minTime);
+    printf("TIME: %0.3f microseconds", (minTime / 100) * 1000000);
 
     return 0;
 }

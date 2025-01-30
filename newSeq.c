@@ -91,7 +91,7 @@ int main() {
     //  int time = __INT_MAX__;
     double time = 0;
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 100; i++) {
         solutions = 0;
         start = read_timer();
         int board[N][N] = {0};
@@ -108,7 +108,7 @@ int main() {
         }*/
     }
 
-    time = (time / 10) * 1000000;
+    time = (time / 100) * 1000000;
 
     printf("%s", "NUMBER OF SOLUTIONS: ");
     printf("%d\n", solutions);

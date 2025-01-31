@@ -4,7 +4,7 @@
 #include <sys/time.h>
 #include <time.h>
 
-#define N 10
+#define N 12
 
 int solutions = 0;
 
@@ -57,21 +57,8 @@ double read_timer() {
     return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
 }
 
-void print(int board[N][N]) {
-    printf("Solution %d\n", solutions + 1);
-    for (int j = 0; j < N; j++) {
-        for (int i = 0; i < N; i++) {
-            printf("%d", board[j][i]);
-            printf("%s", " ");
-        }
-        printf("%s", "\n");
-    }
-    printf("%s", "\n");
-}
-
 void recursive(int board[N][N], int row) {
     if (row == N) {
-        //print(board);
         solutions++;
         return;
     }
@@ -87,8 +74,6 @@ void recursive(int board[N][N], int row) {
 
 int main() {
     double start, end;
-    // double cpu_time_used;
-    //  int time = __INT_MAX__;
     double time = 0;
 
     for (int i = 0; i < 100; i++) {
@@ -97,15 +82,10 @@ int main() {
         int board[N][N] = {0};
         recursive(board, 0);
         end = read_timer();
-        // cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-        //  int microTime = (cpu_time_used * 1000000);
+
 
         double times = end - start;
         time += times;
-
-        /*if (microTime < time) {
-            time = microTime;
-        }*/
     }
 
     time = (time / 100) * 1000000;

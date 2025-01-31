@@ -5,7 +5,7 @@
 #include <sys/time.h>
 #include <time.h>
 
-#define N 10
+#define N 12
 
 int solutions = 0;
 pthread_t threads[N];
@@ -45,18 +45,6 @@ int scan(int thread_num, int row, int col) {
         return 0;
 }
 
-void print(int thread_num) {
-    printf("Solution %d\n", solutions + 1);
-    for (int j = 0; j < N; j++) {
-        for (int i = 0; i < N; i++) {
-            printf("%d", boards[thread_num][j][i]);
-            printf("%s", " ");
-        }
-        printf("%s", "\n");
-    }
-    printf("%s", "\n");
-}
-
 void placeFirstQueens() {
     for (int i = 0; i < N; i++) {
         boards[i][0][i] = 1;
@@ -78,7 +66,6 @@ double read_timer() {
 void recursive(int thread_num, int row) {
     if (row == N) {
         pthread_mutex_lock(&lock);
-        //print(thread_num);
         solutions++;
         pthread_mutex_unlock(&lock);
         return;
@@ -101,7 +88,6 @@ void *thread_values(void *args) {
 
 int main() {
     double end, start;
-
     double minTime = 0;
 
     for (int i = 0; i <= 100; i++) {

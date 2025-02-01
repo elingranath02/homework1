@@ -10,26 +10,32 @@ When timing the execution, the runtime did not improve and was instead increased
 of parallelizing the code was to have one working thread per column in the board.
 Since the threads could run independently and in parallel if they had their own boards, one thread could generate all of the results when
 the first queen was placed on "a1" and another thread could generate the results when the first queen was placed on "b1" and so on.
-This resulted in the need of using mutexes for locking both the variable keeping track of the number of solutions,
-and the method for printing the board. When using 8 different threads, the execution time was much better than the
-first parallelized code but had not improved from the sequential code. The second program was around 200x faster than the first
-parallelized program but half as fast as the sequential code.
+This resulted in the need of using mutexes for locking the variable keeping track of the number of solutions. 
+
+When using the same amount of threads as columns/rows/queens to be placed, the execution time was improved a lot. 
+For 8 queens, it was possible to see that the difference between the parallelized and the sequential was a little bit more than twice as
+much for the sequential. When increasing to 9 queens, it was possible to see that the difference between the exectuion times was even 
+larger. It was almost three times as large for the sequential compared to the time for the parallelized one. Same thing can be observed 
+when increasing the number of queens even more and the speedup is clearly noticable (which can be seen in the table below). 
+The conclusion is therefor that the execution time is increasing a lot when using different threads instead of generating the solutions
+after each other in a sequential program. It was even poissible to see how efficient the parallelized program was compared to the 
+sequential for multiple number of queens. 
 
 
------------------------------------------------ Benchmarks -------------------------------------------
-        Sequential                Parallelized N threads              Parallelized N/2 threads
+-------------------------- Benchmarks --------------------------
+        Sequential                Parallelized N threads              
 
-Value of N | Runtime (ms)      Value of N | Runtime (ms)           Value of N | Runtime (ms)
------------------------       ---------------------------------    --------------------------------
-    8      |  2902  678           8       |     2856   302             8      |       2102
------------------------       ---------------------------------    ---------------------------------
-    9      |  11360  2623         9       |     11184  750             9      |          -
------------------------       ---------------------------------    ---------------------------------
-   10      |  33562  11912        10      |     27685   2580          10      |       26143
------------------------       ---------------------------------    ----------------------------------
-   11      |  148686  62726       11      |     116195  12274         11      |          -
------------------------       ---------------------------------    ----------------------------------
-           |          363025              |             68690
-------------------------------------------------------------------------------------------------------
+Value of N | Runtime (ms)      Value of N | Runtime (ms)           
+-----------------------       ---------------------------------   
+    8      |    678                8       |       302             
+-----------------------       ---------------------------------    
+    9      |    2623               9       |       750             
+-----------------------       ---------------------------------    
+   10      |    11912              10      |      2580          
+-----------------------       ---------------------------------    
+   11      |    62726              11      |     12274         
+-----------------------       ---------------------------------    
+   12      |   363025             12       |     68690
+-----------------------------------------------------------------
 The avarage time of 100 executions
 

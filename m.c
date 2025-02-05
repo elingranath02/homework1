@@ -1,14 +1,16 @@
+#include <omp.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>
 
-#define N 12
+#define N 8
 
 int solutions = 0;
 double differentTimes[100];
 
+// Diagonal och kolumnkontroller
 int diagonal(int board[N][N], int m, int n, int row, int col) {
     int i = row;
     int j = col;
@@ -26,7 +28,6 @@ int diagonal(int board[N][N], int m, int n, int row, int col) {
 
 int searchStraight(int board[N][N], int row, int col) {
     int a = row;
-
     while (a >= 0) {
         if (board[a][col] == 1) {
             return 0;
@@ -37,13 +38,9 @@ int searchStraight(int board[N][N], int row, int col) {
 }
 
 int scan(int board[N][N], int row, int col) {
-    if (diagonal(board, -1, 1, row, col) == 1 &&
-        diagonal(board, -1, -1, row, col) == 1 &&
-        searchStraight(board, row, col) == 1) {
-        return 1;
-    } else {
-        return 0;
-    }
+    return diagonal(board, -1, 1, row, col) &&
+        diagonal(board, -1, -1, row, col) &&
+        searchStraight(board, row, col);
 }
 
 double read_timer() {
@@ -58,22 +55,13 @@ double read_timer() {
     return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
 }
 
-void print(int board[N][N]) {
-    printf("Solution %d\n", solutions + 1);
-    for (int j = 0; j < N; j++) {
-        for (int i = 0; i < N; i++) {
-            printf("%d", board[j][i]);
-            printf("%s", " ");
-        }
-        printf("%s", "\n");
-    }
-    printf("%s", "\n");
-}
-
 void recursive(int board[N][N], int row) {
+
     if (row == N) {
-        // print(board);
-        solutions++;
+#pragma omp critical
+        {
+            solutions++;
+        }
         return;
     }
 
@@ -94,8 +82,7 @@ void swap(int i, int j) {
 
 void insertionSort() {
     for (int i = 0; i < 100; i++) {
-        for (int j = i; j > 0 && differentTimes[j] < differentTimes[j - 1];
-             j--) {
+        for (int j = i; j > 0 && differentTimes[j] < differentTimes[j - 1]; j--) {
             swap(j, j - 1);
         }
     }
@@ -105,25 +92,41 @@ int main() {
     double start, end;
     double time = 0;
 
+    omp_set_num_threads(3);
+
     for (int i = 0; i < 100; i++) {
         solutions = 0;
         start = read_timer();
-        int board[N][N] = {0};
-        recursive(board, 0);
-        end = read_timer();
 
+        #pragma omp parallel
+        {
+            #pragma omp single
+            {
+                for (int col = 0; col < N; col++) {
+                    #pragma omp task firstprivate(col)
+                    {
+                        int board[N][N] = {0};
+                        board[0][col] = 1;
+                        recursive(board, 1);
+                    }
+                }
+            }
+        }
+
+        end = read_timer();
         double times = end - start;
         time += times;
-
         differentTimes[i] = times;
     }
 
-    time = (time / 100) * 1000000;
+    insertionSort();
 
-    printf("MEDIAN TIME: %0.3f microseconds\n", differentTimes[49] * 1000000);
-    printf("%s", "NUMBER OF SOLUTIONS: ");
-    printf("%d\n", solutions);
-    printf("AVG TIME: %0.3f microseconds", time);
+    printf("FIRST VAL: %f\n", differentTimes[0] * 1000000);
+    printf("MEDIAN TIME: %f\n", differentTimes[49] * 1000000);
+    printf("LAST VAL: %f\n", differentTimes[98] * 1000000);
+
+    printf("NUMBER OF SOLUTIONS: %d\n", solutions);
+    printf("AVG TIME: %0.3f microseconds\n", (time / 100) * 1000000);
 
     return 0;
 }

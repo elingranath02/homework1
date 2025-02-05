@@ -96,8 +96,9 @@ double insertionSort() {
 int main() {
     double start, end;
     double time = 0;
+    int threads = N/4;
 
-    omp_set_num_threads(N);
+    omp_set_num_threads(threads);
 
     for (int i = 0; i < 100; i++) {
         solutions = 0;
@@ -105,9 +106,11 @@ int main() {
 
 #pragma omp parallel
         {
-            int board[N][N] = {0};
-            board[0][omp_get_thread_num()] = 1;
-            recursive(board, 1);
+            for(int i = 0; i < 4; i++){
+                int board[N][N] = {0};
+                board[0][(omp_get_thread_num()*4)+(i)] = 1;
+                recursive(board, 1);
+            }
         }
 
         end = read_timer();

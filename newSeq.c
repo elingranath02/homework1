@@ -71,7 +71,7 @@ void print(int board[N][N]) {
 
 void recursive(int board[N][N], int row) {
     if (row == N) {
-        //print(board);
+        // print(board);
         solutions++;
         return;
     }

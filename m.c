@@ -5,7 +5,7 @@
 #include <sys/time.h>
 #include <time.h>
 
-#define N 8
+#define N 12
 
 int solutions = 0;
 double differentTimes[100];
@@ -92,7 +92,7 @@ int main() {
     double start, end;
     double time = 0;
 
-    omp_set_num_threads(3);
+    omp_set_num_threads(N);
 
     for (int i = 0; i < 100; i++) {
         solutions = 0;

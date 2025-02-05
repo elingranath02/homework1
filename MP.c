@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +8,7 @@
 #define N 8
 
 int solutions = 0;
+
 double differentTimes[100];
 
 int diagonal(int board[N][N], int m, int n, int row, int col) {
@@ -58,22 +60,12 @@ double read_timer() {
     return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
 }
 
-void print(int board[N][N]) {
-    printf("Solution %d\n", solutions + 1);
-    for (int j = 0; j < N; j++) {
-        for (int i = 0; i < N; i++) {
-            printf("%d", board[j][i]);
-            printf("%s", " ");
-        }
-        printf("%s", "\n");
-    }
-    printf("%s", "\n");
-}
-
 void recursive(int board[N][N], int row) {
     if (row == N) {
-        // print(board);
-        solutions++;
+#pragma omp critical
+        {
+            solutions++;
+        }
         return;
     }
 
@@ -92,7 +84,7 @@ void swap(int i, int j) {
     differentTimes[j] = temp;
 }
 
-void insertionSort() {
+double insertionSort() {
     for (int i = 0; i < 100; i++) {
         for (int j = i; j > 0 && differentTimes[j] < differentTimes[j - 1];
              j--) {
@@ -105,25 +97,35 @@ int main() {
     double start, end;
     double time = 0;
 
+    omp_set_num_threads(N);
+
     for (int i = 0; i < 100; i++) {
         solutions = 0;
         start = read_timer();
-        int board[N][N] = {0};
-        recursive(board, 0);
-        end = read_timer();
 
+#pragma omp parallel
+        {
+            int board[N][N] = {0};
+            board[0][omp_get_thread_num()] = 1;
+            recursive(board, 1);
+        }
+
+        end = read_timer();
         double times = end - start;
-        time += times;
+        time += (end - start);
 
         differentTimes[i] = times;
     }
 
-    time = (time / 100) * 1000000;
+    insertionSort();
 
-    printf("MEDIAN TIME: %0.3f microseconds\n", differentTimes[49] * 1000000);
+    printf("FIRST VAL: %f\n", differentTimes[0] * 1000000);
+    printf("MEDIAN TIME  : %f\n", differentTimes[49] * 1000000);
+    printf("LAST VAL : %f\n", differentTimes[98] * 1000000);
+
     printf("%s", "NUMBER OF SOLUTIONS: ");
     printf("%d\n", solutions);
-    printf("AVG TIME: %0.3f microseconds", time);
+    printf("AVG TIME: %0.3f microseconds", (time / 100) * 1000000);
 
     return 0;
 }

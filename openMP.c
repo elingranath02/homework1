@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -10,7 +11,7 @@
 int solutions = 0;
 pthread_t threads[N];
 int boards[N][N][N] = {{{0}}};
-pthread_mutex_t lock;
+omp_lock_t lock;
 
 int diagonal(int n, int row, int col, int thread_num) {
     int i = row;
@@ -65,9 +66,10 @@ double read_timer() {
 
 void recursive(int thread_num, int row) {
     if (row == N) {
-        pthread_mutex_lock(&lock);
+        omp_test_lock(&lock);
+        omp_set_lock(&lock);
         solutions++;
-        pthread_mutex_unlock(&lock);
+        omp_unset_lock(&lock);
         return;
     }
 
@@ -93,27 +95,27 @@ int main() {
     for (int i = 0; i <= 100; i++) {
         solutions = 0;
         placeFirstQueens();
-        pthread_mutex_init(&lock, NULL);
+        omp_init_lock(&lock);
         start = read_timer();
 
+#pragma omp parallel {
         for (int i = 0; i < N; i++) {
             int *args = malloc(sizeof(int));
             *args = i;
-            pthread_create(&threads[i], NULL, thread_values, (void *)args);
+            thread_values((void *)args);
+            // pthread_create(&threads[i], NULL, thread_values, (void *)args);
         }
-        for (int i = 0; i < N; i++) {
-            pthread_join(threads[i], NULL);
-        }
-
-        pthread_mutex_destroy(&lock);
-        end = read_timer();
-
-        minTime += (end - start);
     }
 
-    printf("%s", "NUMBER OF SOLUTIONS: ");
-    printf("%d\n", solutions);
-    printf("TIME: %0.3f microseconds", (minTime / 100) * 1000000);
+    omp_destroy_lock(&lock);
+    end = read_timer();
 
-    return 0;
+    minTime += (end - start);
+}
+
+printf("%s", "NUMBER OF SOLUTIONS: ");
+printf("%d\n", solutions);
+printf("TIME: %0.3f microseconds", (minTime / 100) * 1000000);
+
+return 0;
 }

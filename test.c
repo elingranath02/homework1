@@ -1,58 +1,87 @@
-
+#include <fcntl.h>  // För O_CREAT
 #include <pthread.h>
+#include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
-/*Global variable : accessible to all threads */
-int thread_count;
-void* Hello(void* rank);
-/* Thread function */
-int main(int argc, char* argv[]) {
-    long thread;
+#define NUM_THREADS 5
+#define maxSleep 5
+#define maxSleepBath 1
 
-    /* Use long in case of a 64−bit system */
-    pthread_t* thread_handles;
+sem_t *bathroomLock, *waitroomLock;
+int countInBathroom = 0;
+int countInQueue = 0;
+int genderInBathroom = -1;
+int lock;
+int lock2;
+int inBathroom = 0;
 
-    /* Get number of threads from command line */
+int randomTime(int maxTime) {
+    int r = rand() % maxTime;
 
-    thread_count = strtol(argv[1], NULL, 10);
-    thread_handles = malloc(thread_count * sizeof(pthread_t));
-    for (thread = 0; thread < thread_count; thread++)
-        pthread_create(&thread_handles[thread], NULL, Hello, (void*)thread);
-    printf("Hello from the main thread\n");
-    for (thread = 0; thread < thread_count; thread++)
-        pthread_join(thread_handles[thread], NULL);
-    free(thread_handles);
+    return r;
+}
+
+void enterBathroom(int id) {
+    pthread_mutex_lock(&lock);
+    if (countInBathroom == 0) {
+        genderInBathroom = id % 2;
+        printf("Gender in bathroom: %d\n", genderInBathroom);
+        sem_wait(bathroomLock);
+    } else {
+        if (id % 2 != genderInBathroom || countInQueue != 0) {
+            countInQueue++;
+            printf("Person %d väntar på att använda badrummet.\n", id);
+            sem_wait(bathroomLock);
+            countInQueue--;
+        }
+    }
+
+    printf("Person %d använder badrummet.\n", id);
+    countInBathroom++;
+    sleep(1);
+    pthread_mutex_unlock(&lock);
+
+    printf("Person %d är klar.\n", id);
+    countInBathroom--;
+    if (countInBathroom == 0) {
+        sem_post(bathroomLock);
+    }
+}
+
+void *start(void *arg) {
+    int id = *(int *)arg;
+
+    sleep(1);
+    enterBathroom(id);
+}
+
+int main() {
+    pthread_t threads[NUM_THREADS];
+    int ids[NUM_THREADS];
+
+    bathroomLock = sem_open("/bathroomSem", O_CREAT, 0644, 1);
+    waitroomLock = sem_open("/waitroomSem", O_CREAT, 0644, 1);
+    pthread_mutex_init(&lock, NULL);
+    pthread_mutex_init(&lock2, NULL);
+
+    for (int i = 0; i < NUM_THREADS; i++) {
+        ids[i] = i;
+        pthread_create(&threads[i], NULL, start, &ids[i]);
+    }
+
+    for (int i = 0; i < NUM_THREADS; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    sem_close(bathroomLock);
+    sem_close(waitroomLock);
+    sem_unlink("/bathroomSem");
+    sem_unlink("/waitroomSem");
+
+    pthread_mutex_destroy(&lock);
+    pthread_mutex_destroy(&lock2);
+
     return 0;
 }
-/* main */
-
-void* Hello(void* rank) {
-    /* Use long in case of 64−bit system */
-    long my_rank = (long)rank;
-    printf("Hello from thread %ld of %d\n", my_rank, thread_count);
-    return NULL;
-} /* Hello */
-
-/*int i = row;
-    int j = col;
-    int k = col;
-
-    while ((i >= 0 && j >= 0 && j <= 7) || (k >= 0 && k >= 0 && k <= 7)) {
-        if (boards[thread_num][i][j] == 1 || boards[thread_num][i][k] == 1) {
-            return 0;
-        }
-        i = i - 1;
-        j = j + 1;
-        k = k - 1;
-    }
-    int a = row;
-
-    while (a >= 0) {
-        if (boards[thread_num][a][col] == 1) {
-            return 0;
-        }
-        a--;
-    }
-
-    return 1;*/

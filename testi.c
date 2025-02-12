@@ -23,6 +23,7 @@ int randomTime(int maxTime) {
 }
 
 void enterWoman(int id) {
+    nrOfWomenWaiting--;
     printf("Woman %d enters bathroom\n", id);
     nrOfWomenInBathroom++;
     sleep(randomTime(maxSleepBath));
@@ -30,6 +31,7 @@ void enterWoman(int id) {
     nrOfWomenInBathroom--;
 }
 void enterMan(int id) {
+    nrOfMenWaiting--;
     printf("Man %d enters bathroom\n", id);
     nrOfMenInBathroom++;
     sleep(randomTime(maxSleepBath));
@@ -49,6 +51,7 @@ void women(int id) {
     } else {
         nrOfWomenWaiting++;
         sem_post(y);
+        printf("Woman %d placed in queue\n", id);
         sem_wait(womenLock);
         sem_post(womenLock);
         if (nrOfWomenInBathroom == 0) {
@@ -56,12 +59,13 @@ void women(int id) {
             printf("set menLock\n");
         }
         printf("woman joined second\n");
-        nrOfWomenWaiting--;
         enterWoman(id);
     }
     if (nrOfWomenInBathroom == 0 && nrOfWomenWaiting == 0) {
         printf("Women open manLock\n");
-        sem_post(menLock);
+        for (int i = 0; i <= nrOfMenWaiting + 1; i++) {
+            sem_post(menLock);
+        }
     }
 }
 
@@ -70,13 +74,14 @@ void men(int id) {
         (menLock && womenLock)) {
         printf("%s\n", "yooo");
         sem_post(y);
-        sem_post(womenLock);
+        // sem_post(womenLock);
         sem_wait(womenLock);
         printf("man joined first and set womenLock\n");
         enterMan(id);
     } else {
         nrOfMenWaiting++;
         sem_post(y);
+        printf("Man %d placed in queue\n", id);
         sem_wait(menLock);
         sem_post(menLock);
         if (nrOfMenInBathroom == 0) {
@@ -85,12 +90,14 @@ void men(int id) {
         }
 
         printf("man joined second\n");
-        nrOfMenWaiting--;
         enterMan(id);
     }
     if (nrOfMenInBathroom == 0 && nrOfMenWaiting == 0) {
         printf("Man open womanLock\n");
-        sem_post(womenLock);
+        for (int i = 0; i <= nrOfMenWaiting + 1; i++) {
+            printf("Lock opened by man\n");
+            sem_post(womenLock);
+        }
     }
 }
 

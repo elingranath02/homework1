@@ -10,29 +10,22 @@
 #define maxSleepBath 1
 
 sem_t *bathroomLock, *waitroomLock;
+int lock;
 int countInBathroom = 0;
 int countInQueue = 0;
 int genderInBathroom = -1;
-int lock;
-int lock2;
-int inBathroom = 0;
 
-int randomTime(int maxTime) {
-    int r = rand() % maxTime;
-
-    return r;
-}
+int randomTime(int maxTime) { return rand() % maxTime; }
 
 void enterBathroom(int id) {
     sem_wait(waitroomLock);
+    pthread_mutex_lock(&lock);
+
     if (countInBathroom == 0) {
-        // pthread_mutex_lock(&lock);
         genderInBathroom = id % 2;
         printf("Gender in bathroom: %d\n", genderInBathroom);
-        // printf("Bathromlock: %d", bathroomLock);
         sem_post(waitroomLock);
         sem_wait(bathroomLock);
-
     } else {
         sem_post(waitroomLock);
         if (id % 2 != genderInBathroom || countInQueue != 0) {
@@ -43,27 +36,25 @@ void enterBathroom(int id) {
         }
     }
 
-    pthread_mutex_lock(&lock);
-    printf("Person %d använder badrummet.\n", id);
     countInBathroom++;
     pthread_mutex_unlock(&lock);
+
+    printf("Person %d använder badrummet.\n", id);
     sleep(1);
 
-    pthread_mutex_lock(&lock2);
-    printf("Person %d är klar.\n", id);
+    pthread_mutex_lock(&lock);
     countInBathroom--;
-    sem_post(bathroomLock);
-    pthread_mutex_unlock(&lock2);
-
-    /*
     if (countInBathroom == 0) {
         sem_post(bathroomLock);
-    }*/
+    }
+    pthread_mutex_unlock(&lock);
+
+    printf("Person %d är klar.\n", id);
 }
 
 void *start(void *arg) {
     int id = *(int *)arg;
-
+    free(arg);
     sleep(1);
     enterBathroom(id);
 }
@@ -75,11 +66,11 @@ int main() {
     bathroomLock = sem_open("/bathroomSem", O_CREAT, 0644, 1);
     waitroomLock = sem_open("/waitroomSem", O_CREAT, 0644, 1);
     pthread_mutex_init(&lock, NULL);
-    pthread_mutex_init(&lock2, NULL);
 
     for (int i = 0; i < NUM_THREADS; i++) {
-        ids[i] = i;
-        pthread_create(&threads[i], NULL, start, &ids[i]);
+        int *arg = malloc(sizeof(int));  // Undviker race condition
+        *arg = i;
+        pthread_create(&threads[i], NULL, start, arg);
     }
 
     for (int i = 0; i < NUM_THREADS; i++) {
@@ -90,9 +81,7 @@ int main() {
     sem_close(waitroomLock);
     sem_unlink("/bathroomSem");
     sem_unlink("/waitroomSem");
-
     pthread_mutex_destroy(&lock);
-    pthread_mutex_destroy(&lock2);
 
     return 0;
 }

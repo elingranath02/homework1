@@ -1,109 +1,193 @@
-#include <fcntl.h>
+
+#include <fcntl.h>  // För O_CREAT
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#define NUM_PEOPLE 10        // Antal personer i simuleringen
-#define MAX_BATHROOM_TIME 2  // Max tid i badrummet
-#define MAX_WAIT_TIME 5      // Max tid att vänta mellan besök
+#define NUM_THREADS 5
+#define maxSleep 5
+#define maxSleepBath 3
 
-sem_t *bathroomLock;  // Ser till att bara ett kön åt gången är inne
-sem_t *queueLock;     // Hanterar rättvis tillgång
+sem_t *x, *y, *womenLock, *menLock;
+int nrOfWomenInBathroom = 0;
+int nrOfMenInBathroom = 0;
+int nrOfWomenWaiting = 0;
+int nrOfMenWaiting = 0;
 
-int menCount = 0, womenCount = 0;
-pthread_mutex_t countLock = PTHREAD_MUTEX_INITIALIZER;  // Skyddar räknare
+int randomTime(int maxTime) {
+    int r = rand() % maxTime;
 
-void *man(void *arg) {
-    int id = *(int *)arg;
-    while (1) {
-        sleep(rand() % MAX_WAIT_TIME + 1);  // Simulera arbete
-
-        sem_wait(queueLock);  // Säkerställ rättvis turordning
-        pthread_mutex_lock(&countLock);
-        if (menCount == 0) {
-            sem_wait(bathroomLock);  // Första mannen blockerar badrummet
-        }
-        menCount++;
-        pthread_mutex_unlock(&countLock);
-        sem_post(queueLock);  // Släpp kön
-
-        printf("Man %d enters the bathroom. (Men: %d, Women: %d)\n", id,
-               menCount, womenCount);
-        sleep(rand() % MAX_BATHROOM_TIME + 1);  // Simulera badrumsbesök
-
-        pthread_mutex_lock(&countLock);
-        menCount--;
-        printf("Man %d leaves the bathroom. (Men: %d, Women: %d)\n", id,
-               menCount, womenCount);
-        if (menCount == 0) {
-            sem_post(bathroomLock);  // Sista mannen släpper badrummet
-        }
-        pthread_mutex_unlock(&countLock);
-    }
-    return NULL;
+    return r;
 }
 
-void *woman(void *arg) {
-    int id = *(int *)arg;
-    while (1) {
-        sleep(rand() % MAX_WAIT_TIME + 1);  // Simulera arbete
+void enterWoman(int id) {
+    nrOfWomenWaiting--;
+    printf("Woman %d enters bathroom\n", id);
+    printf("Nr of women waiting: %d\n", nrOfWomenWaiting);
+    nrOfWomenInBathroom++;
+    sleep(randomTime(maxSleepBath));
+    printf("Woman %d leaves bathroom\n", id);
+    nrOfWomenInBathroom--;
+}
+void enterMan(int id) {
+    nrOfMenWaiting--;
+    printf("Man %d enters bathroom\n", id);
+    printf("Nr of men waiting: %d\n", nrOfMenWaiting);
+    nrOfMenInBathroom++;
+    sleep(randomTime(maxSleepBath));
+    printf("Man %d leaves bathroom\n", id);
+    nrOfMenInBathroom--;
+}
 
-        sem_wait(queueLock);  // Säkerställ rättvis turordning
-        pthread_mutex_lock(&countLock);
-        if (womenCount == 0) {
-            sem_wait(bathroomLock);  // Första kvinnan blockerar badrummet
-        }
-        womenCount++;
-        pthread_mutex_unlock(&countLock);
-        sem_post(queueLock);  // Släpp kön
-
-        printf("Woman %d enters the bathroom. (Men: %d, Women: %d)\n", id,
-               menCount, womenCount);
-        sleep(rand() % MAX_BATHROOM_TIME + 1);  // Simulera badrumsbesök
-
-        pthread_mutex_lock(&countLock);
-        womenCount--;
-        printf("Woman %d leaves the bathroom. (Men: %d, Women: %d)\n", id,
-               menCount, womenCount);
-        if (womenCount == 0) {
-            sem_post(bathroomLock);  // Sista kvinnan släpper badrummet
-        }
-        pthread_mutex_unlock(&countLock);
+void women(int id) {
+    if ((menLock && womenLock) == 0) {
+        printf("Both locks closed");
     }
+    if ((nrOfMenInBathroom == 0 && nrOfWomenInBathroom == 0) &&
+        (menLock && womenLock)) {
+        printf("%s\n", "hellooooo");
+
+        // sem_post(menLock);
+        if ((menLock && womenLock) == 0) {
+            printf("Both locks closed \n");
+        }
+        sem_wait(menLock);
+        sem_post(y);
+        printf("woman joined first and set manLock\n");
+        nrOfWomenWaiting++;
+        enterWoman(id);
+    } else {
+        printf("Woman %d placed in queue\n", id);
+        nrOfWomenWaiting++;
+        printf("Nr of women waiting: %d\n", nrOfWomenWaiting);
+        if ((menLock && womenLock) == 0) {
+            printf("Both locks closed 2\n");
+        }
+        sem_wait(womenLock);
+        sem_post(womenLock);
+        sem_post(y);
+        if (nrOfWomenInBathroom == 0) {
+            sem_wait(menLock);
+            printf("set menLock\n");
+        }
+        printf("woman joined second\n");
+        enterWoman(id);
+    }
+    if (nrOfWomenInBathroom == 0 && nrOfWomenWaiting == 0) {
+        printf("Women open manLock\n");
+        for (int i = 0; i <= nrOfMenWaiting; i++) {
+            sem_post(menLock);
+        }
+    }
+}
+
+void men(int id) {
+    if ((nrOfMenInBathroom == 0 && nrOfWomenInBathroom == 0) &&
+        (menLock && womenLock)) {
+        printf("%s\n", "yooo");
+
+        // sem_post(womenLock);
+        if ((menLock && womenLock) == 0) {
+            printf("Both locks closed 3\n");
+        }
+        sem_wait(womenLock);
+        sem_post(y);
+        printf("man joined first and set womenLock\n");
+        nrOfMenWaiting++;
+        enterMan(id);
+    } else {
+        printf("Man %d placed in queue\n", id);
+        nrOfMenWaiting++;
+        printf("Nr of men waiting: %d\n", nrOfMenWaiting);
+        if ((menLock && womenLock) == 0) {
+            printf("Both locks closed 4\n");
+        }
+        sem_wait(menLock);
+        sem_post(menLock);
+        sem_post(y);
+        if (nrOfMenInBathroom == 0) {
+            sem_wait(womenLock);
+            printf("set womenLock\n");
+        }
+
+        printf("man joined second\n");
+        enterMan(id);
+    }
+    if (nrOfMenInBathroom == 0 && nrOfMenWaiting == 0) {
+        printf("Man open womanLock\n");
+        for (int i = 0; i <= nrOfMenWaiting; i++) {
+            printf("Lock opened by man\n");
+            sem_post(womenLock);
+        }
+    }
+}
+
+void enterBathroom(int id) {
+    printf("person with id: %d waits at x\n", id);
+    sem_wait(x);
+    printf("person with id: %d enters first x\n", id);
+    sem_wait(y);
+    printf("person with id: %d enters first y and opens x\n", id);
+    sem_post(x);
+    /*
+        if (id % 2 == 0) {
+            women(id);
+        } else {
+            men(id);
+        }*/
+
+    sleep(randomTime(maxSleep));
+    printf("person with id: %d opens y\n", id);
+    sem_post(y);
+}
+
+void *start(void *arg) {
+    int id = *(int *)arg;
+    sleep(randomTime(maxSleep));
+    enterBathroom(id);
+
     return NULL;
 }
 
 int main() {
-    srand(time(NULL));
-    pthread_t people[NUM_PEOPLE];
-    int ids[NUM_PEOPLE];
+    pthread_t threads[NUM_THREADS];
+    int ids[NUM_THREADS];
 
-    // Initiera semaforer på macOS-vänligt sätt
-    bathroomLock = sem_open("/bathroom", O_CREAT | O_EXCL, 0644, 1);
-    queueLock = sem_open("/queue", O_CREAT | O_EXCL, 0644, 1);
+    sem_close(x);
+    sem_close(y);
+    sem_close(womenLock);
+    sem_close(menLock);
+    sem_unlink("/bathroomSem");
+    sem_unlink("/waitroomSem");
+    sem_unlink("/womenSem");
+    sem_unlink("/menSem");
 
-    // Skapa trådar för män och kvinnor
-    for (int i = 0; i < NUM_PEOPLE; i++) {
-        ids[i] = i + 1;
-        if (i % 2 == 0) {
-            pthread_create(&people[i], NULL, man, &ids[i]);
-        } else {
-            pthread_create(&people[i], NULL, woman, &ids[i]);
+    x = sem_open("/bathroomSem", O_CREAT, 0644, 1);
+    y = sem_open("/waitroomSem", O_CREAT, 0644, 1);
+    womenLock = sem_open("/womenSem", O_CREAT, 0644, 1);
+    menLock = sem_open("/menSem", O_CREAT, 0644, 1);
+
+    while (1) {
+        for (int i = 0; i < NUM_THREADS; i++) {
+            ids[i] = i;
+            pthread_create(&threads[i], NULL, start, &ids[i]);
+        }
+
+        for (int i = 0; i < NUM_THREADS; i++) {
+            pthread_join(threads[i], NULL);
         }
     }
 
-    // Vänta på att trådarna ska köra (de kör oändligt)
-    for (int i = 0; i < NUM_PEOPLE; i++) {
-        pthread_join(people[i], NULL);
-    }
-
-    // Stäng och ta bort semaforer
-    sem_close(bathroomLock);
-    sem_close(queueLock);
-    sem_unlink("/bathroom");
-    sem_unlink("/queue");
+    sem_close(x);
+    sem_close(y);
+    sem_close(womenLock);
+    sem_close(menLock);
+    sem_unlink("/bathroomSem");
+    sem_unlink("/waitroomSem");
+    sem_unlink("/womenSem");
+    sem_unlink("/menSem");
 
     return 0;
 }

@@ -81,11 +81,15 @@ void women(int id) {
         sem_post(menLock);
         // printf("Men lock opened by woman\n");
         // printf("Nr of men waiting: %d\n", nrOfMenWaiting);
-        int i = nrOfMenWaiting - 1;
-        while (i > 0) {
+        int temp = (nrOfMenWaiting - 1);
+        while (temp > 0) {
+            /*int temptemp = nrOfMenWaiting;
+            if (temp > temptemp) {
+                temp = temptemp;
+            }*/
             // printf("# of men waiting: %d\n", nrOfMenWaiting);
             sem_post(menLock);
-            i--;
+            temp--;
             // printf("Men lock opened by woman\n");
         }
     }
@@ -120,10 +124,12 @@ void men(int id) {
         sem_post(womenLock);
         // printf("Women lock opened by man\n");
         // printf("Nr of women waiting:%d \n", nrOfWomenWaiting);
-        int i = nrOfWomenWaiting - 1;
-        while (i > 0) {
+        int temp = (nrOfWomenWaiting - 1);
+        while (temp > 0) {
             // printf("Women lock opened by man\n");
+
             sem_post(womenLock);
+            temp--;
         }
     }
 }

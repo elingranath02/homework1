@@ -32,6 +32,7 @@ int randomTime(int maxTime) {
 
 void enterWoman(int id) {
     nrOfWomenInBathroom++;
+    // nrOfWomenWaiting--;
     printf("Woman %d enters bathroom\n", id);
     // printf("Nr of women waiting: %d\n", nrOfWomenWaiting);
     sleep(randomTime(maxSleepBath));
@@ -40,6 +41,7 @@ void enterWoman(int id) {
 }
 void enterMan(int id) {
     nrOfMenInBathroom++;
+    // nrOfMenWaiting--;
     printf("Man %d enters bathroom\n", id);
     // printf("Nr of men waiting: %d\n", nrOfMenWaiting);
     sleep(randomTime(maxSleepBath));
@@ -79,9 +81,11 @@ void women(int id) {
         sem_post(menLock);
         // printf("Men lock opened by woman\n");
         // printf("Nr of men waiting: %d\n", nrOfMenWaiting);
-        for (int i = 0; i < nrOfMenWaiting - 1; i++) {
+        int i = nrOfMenWaiting - 1;
+        while (i > 0) {
             // printf("# of men waiting: %d\n", nrOfMenWaiting);
             sem_post(menLock);
+            i--;
             // printf("Men lock opened by woman\n");
         }
     }
@@ -105,9 +109,9 @@ void men(int id) {
         }
         sem_wait(menLock);
         // sem_post(menLock);
-
-        // printf("man joined second\n");
         nrOfMenWaiting--;
+        // printf("man joined second\n");
+
         enterMan(id);
     }
     nrOfMenInBathroom--;
@@ -116,7 +120,8 @@ void men(int id) {
         sem_post(womenLock);
         // printf("Women lock opened by man\n");
         // printf("Nr of women waiting:%d \n", nrOfWomenWaiting);
-        for (int i = 0; i < nrOfWomenWaiting - 1; i++) {
+        int i = nrOfWomenWaiting - 1;
+        while (i > 0) {
             // printf("Women lock opened by man\n");
             sem_post(womenLock);
         }
@@ -125,7 +130,7 @@ void men(int id) {
 
 void enterBathroom(int id) {
     // printf("person with id: %d waits at x\n", id);
-    // // sem_wait(x);
+    // sem_wait(x);
     // printf("person with id: %d enters first x\n", id);
     sem_wait(y);
     // printf("person with id: %d enters first y\n", id);

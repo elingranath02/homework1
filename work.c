@@ -6,11 +6,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define NUM_THREADS 5
+#define NUM_THREADS 1
 #define maxSleep 5
 #define maxSleepBath 3
 
-sem_t *x, *y, *womenLock, *menLock;
+sem_t *flora, *y, *womenLock, *menLock;
 int nrOfWomenInBathroom = 0;
 int nrOfMenInBathroom = 0;
 int nrOfWomenWaiting = 0;
@@ -125,12 +125,21 @@ void men(int id) {
 }
 
 void enterBathroom(int id) {
-    printf("person with id: %d waits at x\n", id);
-    sem_wait(x);
-    printf("person with id: %d enters first x\n", id);
+    int a;
+    sem_getvalue(flora, &a);
+    printf("Lockvalue: %d\n", flora);
+    printf("person with id: %d waits at flora\n", id);
+    sem_wait(flora);
+    sem_getvalue(flora, &a);
+    printf("Lockvalue after : %d\n", flora);
+    sem_wait(flora);
+    sem_getvalue(flora, &a);
+    printf("Lockvalue after : %d\n", flora);
+
+    printf("person with id: %d enters first flora\n", id);
     sem_wait(y);
-    printf("person with id: %d enters first y and opens x\n", id);
-    sem_post(x);
+    printf("person with id: %d enters first y and opens flora\n", id);
+    sem_post(flora);
     /*
         if (id % 2 == 0) {
             women(id);
@@ -155,7 +164,12 @@ int main() {
     pthread_t threads[NUM_THREADS];
     int ids[NUM_THREADS];
 
-    sem_close(x);
+    flora = sem_open("/bathroomSem", O_CREAT, 0644, 1);
+    y = sem_open("/waitroomSem", O_CREAT, 0644, 1);
+    womenLock = sem_open("/womenSem", O_CREAT, 0644, 1);
+    menLock = sem_open("/menSem", O_CREAT, 0644, 1);
+
+    sem_close(flora);
     sem_close(y);
     sem_close(womenLock);
     sem_close(menLock);
@@ -163,8 +177,14 @@ int main() {
     sem_unlink("/waitroomSem");
     sem_unlink("/womenSem");
     sem_unlink("/menSem");
+    sem_destroy(flora);
+    sem_destroy(y);
 
-    x = sem_open("/bathroomSem", O_CREAT, 0644, 1);
+    flora = sem_open("/bathroomSem", O_CREAT, 0644, 1);
+
+    int a = 0;
+    sem_getvalue(flora, &a);
+    printf("Lockvalue: %d\n", flora);
     y = sem_open("/waitroomSem", O_CREAT, 0644, 1);
     womenLock = sem_open("/womenSem", O_CREAT, 0644, 1);
     menLock = sem_open("/menSem", O_CREAT, 0644, 1);
@@ -180,7 +200,7 @@ int main() {
         }
     }
 
-    sem_close(x);
+    sem_close(flora);
     sem_close(y);
     sem_close(womenLock);
     sem_close(menLock);

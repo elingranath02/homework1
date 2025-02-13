@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 #define NUM_THREADS 5
-#define maxSleep 5
+#define maxSleep 6
 #define maxSleepBath 3
 
 sem_t *x, *y, *womenLock, *menLock;
@@ -22,7 +22,10 @@ const char sem_name_womenSem[] = "./womenSem";
 const char sem_name_menSem[] = "./menSem";
 
 int randomTime(int maxTime) {
-    int r = rand() % maxTime;
+    int r = 0;
+    while (r == 0) {
+        r = rand() % maxTime;
+    }
 
     return r;
 }
@@ -46,21 +49,24 @@ void enterMan(int id) {
 
 void women(int id) {
     if ((nrOfMenInBathroom == 0 && nrOfMenWaiting == 0)) {
-        sem_post(y);
+        // sem_post(menLock);
         sem_wait(menLock);
+        sem_post(y);
         printf("Woman joined and set menLock\n");
         enterWoman(id);
     } else {
-        sem_post(y);
         printf("Woman %d placed in queue\n", id);
         nrOfWomenWaiting++;
+        sem_post(y);
         printf("Nr of women waiting: %d\n", nrOfWomenWaiting);
         if (nrOfWomenWaiting == 1 && nrOfWomenInBathroom == 0) {
             sem_wait(menLock);
             printf("Woman set menLock in queue\n");
         }
+
         sem_wait(womenLock);
-        sem_post(womenLock);
+        // sem_post(womenLock);
+
         if (nrOfWomenWaiting == 1 && nrOfMenInBathroom == 0) {
             sem_wait(menLock);
             printf("Woman set menLock in queue\n");
@@ -71,7 +77,7 @@ void women(int id) {
     }
     printf("Nr of women in bathroom: %d\n", nrOfWomenInBathroom);
     if (nrOfWomenInBathroom == 0) {
-        for (int i = 0; i < nrOfMenWaiting; i++) {
+        for (int i = 0; i <= nrOfMenWaiting; i++) {
             printf("Men lock opened by woman\n");
             sem_post(menLock);
         }
@@ -80,21 +86,23 @@ void women(int id) {
 
 void men(int id) {
     if ((nrOfWomenInBathroom == 0 && nrOfWomenWaiting == 0)) {
-        sem_post(y);
+        // sem_post(womenLock);
         sem_wait(womenLock);
+        sem_post(y);
         printf("man joined and set womenLock\n");
         enterMan(id);
     } else {
-        sem_post(y);
         printf("Man %d placed in queue\n", id);
         nrOfMenWaiting++;
+        sem_post(y);
         printf("Nr of men waiting: %d\n", nrOfMenWaiting);
         if (nrOfMenWaiting == 1 && nrOfMenInBathroom == 0) {
             sem_wait(womenLock);
             printf("Man set womenLock in queue\n");
         }
         sem_wait(menLock);
-        sem_post(menLock);
+        // sem_post(menLock);
+
         if (nrOfMenWaiting == 1 && nrOfWomenInBathroom == 0) {
             sem_wait(womenLock);
             printf("Man set womenLock in queue\n");
@@ -105,7 +113,7 @@ void men(int id) {
     }
     printf("Nr of men in bathroom: %d\n", nrOfMenInBathroom);
     if (nrOfMenInBathroom == 0) {
-        for (int i = 0; i < nrOfWomenWaiting; i++) {
+        for (int i = 0; i <= nrOfWomenWaiting; i++) {
             printf("Women lock opened by man\n");
             sem_post(womenLock);
         }
@@ -113,11 +121,11 @@ void men(int id) {
 }
 
 void enterBathroom(int id) {
-    // printf("person with id: %d waits at x\n", id);
-    sem_wait(x);
-    // printf("person with id: %d enters first x\n", id);
+    printf("person with id: %d waits at x\n", id);
+    // sem_wait(x);
+    printf("person with id: %d enters first x\n", id);
     sem_wait(y);
-    // printf("person with id: %d enters first y\n", id);
+    printf("person with id: %d enters first y\n", id);
     sem_post(x);
 
     if (id % 2 == 0) {
@@ -132,6 +140,7 @@ void *start(void *arg) {
 
     while (1) {
         sleep(randomTime(maxSleep));
+        sem_wait(x);
         enterBathroom(id);
     }
     return NULL;

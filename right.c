@@ -31,17 +31,17 @@ int randomTime(int maxTime) {
 }
 
 void enterWoman(int id) {
+    nrOfWomenInBathroom++;
     printf("Woman %d enters bathroom\n", id);
     printf("Nr of women waiting: %d\n", nrOfWomenWaiting);
-    nrOfWomenInBathroom++;
     sleep(randomTime(maxSleepBath));
     printf("Woman %d leaves bathroom\n", id);
     nrOfWomenInBathroom--;
 }
 void enterMan(int id) {
+    nrOfMenInBathroom++;
     printf("Man %d enters bathroom\n", id);
     printf("Nr of men waiting: %d\n", nrOfMenWaiting);
-    nrOfMenInBathroom++;
     sleep(randomTime(maxSleepBath));
     printf("Man %d leaves bathroom\n", id);
     nrOfMenInBathroom--;
@@ -51,6 +51,7 @@ void women(int id) {
     if ((nrOfMenInBathroom == 0 && nrOfMenWaiting == 0)) {
         // sem_post(menLock);
         sem_wait(menLock);
+        // nrOfWomenInBathroom++;
         sem_post(y);
         // printf("Woman joined and set menLock\n");
         enterWoman(id);
@@ -61,7 +62,7 @@ void women(int id) {
         printf("Nr of women waiting: %d\n", nrOfWomenWaiting);
         if (nrOfWomenWaiting == 1 && nrOfWomenInBathroom == 0) {
             sem_wait(menLock);
-            //  printf("Woman set menLock in queue\n");
+            // printf("Woman set menLock in queue\n");
         }
 
         sem_wait(womenLock);
@@ -71,11 +72,14 @@ void women(int id) {
         nrOfWomenWaiting--;
         enterWoman(id);
     }
+
     printf("Nr of women in bathroom: %d\n", nrOfWomenInBathroom);
+
     if (nrOfWomenInBathroom == 0) {
-        for (int i = 0; i < nrOfMenWaiting; i++) {
-            // printf("Men lock opened by woman\n");
+        sem_post(menLock);
+        for (int i = 0; i < nrOfMenWaiting - 1; i++) {
             sem_post(menLock);
+            // printf("Men lock opened by woman\n");
         }
     }
 }
@@ -105,7 +109,8 @@ void men(int id) {
     }
     printf("Nr of men in bathroom: %d\n", nrOfMenInBathroom);
     if (nrOfMenInBathroom == 0) {
-        for (int i = 0; i < nrOfWomenWaiting; i++) {
+        sem_post(womenLock);
+        for (int i = 0; i < nrOfWomenWaiting - 1; i++) {
             // printf("Women lock opened by man\n");
             sem_post(womenLock);
         }
@@ -114,7 +119,7 @@ void men(int id) {
 
 void enterBathroom(int id) {
     // printf("person with id: %d waits at x\n", id);
-    // sem_wait(x);
+    // // sem_wait(x);
     // printf("person with id: %d enters first x\n", id);
     sem_wait(y);
     // printf("person with id: %d enters first y\n", id);
@@ -143,10 +148,10 @@ int main() {
     int ids[NUM_THREADS];
     // pthread_detach(threads);
 
-    // sem_close(x);
-    // sem_close(y);
-    // sem_close(womenLock);
-    // sem_close(menLock);
+    sem_close(x);
+    sem_close(y);
+    sem_close(womenLock);
+    sem_close(menLock);
     sem_unlink("/xSem");
     sem_unlink("/ySem");
     sem_unlink("/womenSem");

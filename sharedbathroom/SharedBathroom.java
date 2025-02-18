@@ -66,14 +66,14 @@ public class SharedBathroom {
             System.out.println("bajs");
         }
         while (getMenTurn()) {
-            System.out.println("Woman: " + Thread.currentThread().threadId() + " waiting");
+            System.out.println("Woman: " + Thread.currentThread().getId() + " waiting");
             try {
                 wait();
             } catch (InterruptedException e) {
             }
         }
         increaseWomen();
-        System.out.println("Woman: " + Thread.currentThread().threadId() + " enters bathroom");
+        System.out.println("Woman: " + Thread.currentThread().getId() + " enters bathroom");
 
     }
 
@@ -81,24 +81,24 @@ public class SharedBathroom {
         setMenTurn(true);
 
         System.out.println("Value of lock: " + menTurn);
-        System.out.println("Nr of women in bathr: " + getNrOfWomenInBathroom());
-        if (getMenTurn() == true) {
+        System.out.println("Nr of women in bathroom: " + getNrOfWomenInBathroom());
+        if (getWomenTurn() == true) {
             System.out.println("bajs");
         }
-        while (getMenTurn()) {
-            System.out.println("Man: " + Thread.currentThread().threadId() + " waiting");
+        while (getWomenTurn()) {
+            System.out.println("Man: " + Thread.currentThread().getId() + " waiting");
             try {
                 wait();
             } catch (InterruptedException e) {
             }
         }
         increaseMen();
-        System.out.println("Man: " + Thread.currentThread().threadId() + " enters bathroom");
+        System.out.println("Man: " + Thread.currentThread().getId() + " enters bathroom");
     }
 
     public synchronized void womenExit() {
         decreaseWomen();
-        System.out.println("Woman: " + Thread.currentThread().threadId() + " exits bathroom");
+        System.out.println("Woman: " + Thread.currentThread().getId() + " exits bathroom");
 
         if (getNrOfWomenInBathroom() == 0) {
             setWomenTurn(false);
@@ -109,10 +109,10 @@ public class SharedBathroom {
 
     public synchronized void manExit() {
         decreaseMen();
-        System.out.println("Man: " + Thread.currentThread().threadId() + " exits bathroom");
+        System.out.println("Man: " + Thread.currentThread().getId() + " exits bathroom");
         if (getNrOfMenInBathroom() == 0) {
             setMenTurn(false);
-         }
+        }
     }
 
 }

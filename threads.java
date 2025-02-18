@@ -1,4 +1,6 @@
 import java.util.Random;
+import java.lang.*;
+
 
 import sharedbathroom.SharedBathroom;
 
@@ -43,7 +45,7 @@ public class Threads extends Thread {
 
             threadSleep(maxSleep);
 
-            if ((Thread.currentThread().threadId()) % 2 == 0) {
+            if ((Thread.currentThread().getId()) % 2 == 0) {
                 womanQueue();
             } else {
                 manQueue();
@@ -55,7 +57,7 @@ public class Threads extends Thread {
 
     public void womanQueue() {
 
-        System.out.println("Woman: " + Thread.currentThread().threadId() + " in queue");
+        System.out.println("Woman: " + Thread.currentThread().getId() + " in queue");
         bathroom.womanEnter();
         threadSleep(maxSleepBathroom);
         bathroom.womenExit();
@@ -63,7 +65,7 @@ public class Threads extends Thread {
     }
 
     public void manQueue() {
-        System.out.println("Man: " + Thread.currentThread().threadId() + " in queue");
+        System.out.println("Man: " + Thread.currentThread().getId() + " in queue");
         bathroom.manEnter();
         threadSleep(maxSleepBathroom);
         bathroom.manExit();

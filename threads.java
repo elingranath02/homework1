@@ -1,5 +1,4 @@
 import java.util.Random;
-import java.lang.*;
 
 import sharedbathroom.SharedBathroom;
 
@@ -54,7 +53,7 @@ public class Threads extends Thread {
 
     public void womanQueue(SharedBathroom bathroom) {
 
-        System.out.println("Woman: " + Thread.currentThread().getId() + " in queue");
+        System.out.println("Woman: " + Thread.currentThread().threadId() + " in queue");
         bathroom.womanEnter();
         threadSleep(maxSleepBathroom);
         bathroom.womenExit();

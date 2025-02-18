@@ -14,120 +14,94 @@ public class SharedBathroom {
         this.menTurn = false;
         this.nrOfWomenInBathroom = 0;
         this.nrOfMenInBathroom = 0;
-    }
-
-    private void setWomenTurn(boolean value) {
-        this.womenTurn = value;
-    }
-
-    private void setMenTurn(boolean value) {
-        this.menTurn = value;
-    }
-
-    private void increaseWomen() {
-        this.nrOfWomenInBathroom++;
-    }
-
-    private void increaseMen() {
-        this.nrOfMenInBathroom++;
-    }
-
-    private void decreaseWomen() {
-        this.nrOfWomenInBathroom--;
-
-    }
-
-    private void decreaseMen() {
-        this.nrOfMenInBathroom--;
-    }
-
-    private boolean getWomenTurn(){
-        return this.womenTurn;
-        
-    }
-
-    private boolean getMenTurn(){
-        return this.menTurn;
-    }
-
-    private int getNrOfWomenInBathroom(){
-        return this.nrOfWomenInBathroom;
-    }
-
-    private int getNrOfMenInBathroom(){
-        return this.nrOfMenInBathroom;
+        this.nrOfWomenInQueue = 0;
+        this.nrOfMenInQueue = 0;
     }
 
     
     public synchronized void womanEnter() {
-        
-        setWomenTurn(true);
-        
+        if(nrOfMenInQueue == 0){
+        womenTurn = true;
+        }
        // System.out.println("Value of womenlock: " + getWomenTurn());
-       
-        while (getMenTurn()) {
+        while (menTurn) {
             try {
                 nrOfWomenInQueue++;
                 //System.out.println("Woman: " + Thread.currentThread().threadId() + " waiting");
+                
                 wait();
+                nrOfWomenInQueue--;
+
             } catch (InterruptedException e) {
             }
-            setWomenTurn(true);
+           
+            womenTurn = true;
         }
         
         //System.out.println("Value of womenlock 2: " + getWomenTurn());
-        nrOfWomenInQueue--;
-        increaseWomen();
+        nrOfWomenInBathroom++;
         System.out.println("Woman: " + Thread.currentThread().threadId() + " enters bathroom");
+        
     }
 
     public synchronized void manEnter() {
-        setMenTurn(true);
+        if(nrOfWomenInQueue == 0){
+        menTurn = true;
+        }
         
         //System.out.println("Value of manlock: " + getMenTurn());
-        while (getWomenTurn()) {
+        while (womenTurn) {
             try {
                 //System.out.println("Man: " + Thread.currentThread().threadId() + " waiting");
                 nrOfMenInQueue++;
-                wait();
+                
+                    wait();
+                
+                    nrOfMenInQueue--;
             } catch (InterruptedException e) {
             }
-            setMenTurn(true);
+            menTurn = true;
+        
         }
-        nrOfMenInQueue--;
-        increaseMen();
+        nrOfMenInBathroom++;
         System.out.println("Man: " + Thread.currentThread().threadId() + " enters bathroom");
+       
     }
 
     public synchronized void womenExit() {
-        decreaseWomen();
+        nrOfWomenInBathroom--;
         System.out.println("Woman: " + Thread.currentThread().threadId() + " exits bathroom");
 
-        if (getNrOfWomenInBathroom () == 0){
+        if (nrOfWomenInBathroom == 0){
            
-            setWomenTurn(false);
+            womenTurn = false;
+            //menTurn = true;
+            System.out.println("Women in queue: " + nrOfWomenInQueue);
             notifyAll();
+
             //System.out.println("Value of menlock: " + getWomenTurn());
             System.out.println();
-            System.out.println("Nr of women in bathroom: " + getNrOfWomenInBathroom());
+            System.out.println("Nr of women in bathroom: " + nrOfWomenInBathroom);
             System.out.println();
-            
-
         }
     }
 
     public synchronized void manExit() {
-        decreaseMen();
+        nrOfMenInBathroom--;
         System.out.println("Man: " + Thread.currentThread().threadId() + " exits bathroom");
         
-        if (getNrOfMenInBathroom() == 0) {
-            setMenTurn(false);
+        if (nrOfMenInBathroom == 0) {
+            menTurn = false;
+            //womenTurn = true;
+            System.out.println("Men in queue: " + nrOfMenInQueue);
             notifyAll();
+            
             System.out.println();
-            System.out.println("Nr of men in bathroom: " + getNrOfMenInBathroom());
+            System.out.println("Nr of men in bathroom: " + nrOfMenInBathroom);
             System.out.println();
             
          }
     }
 
 }
+

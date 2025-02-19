@@ -14,7 +14,7 @@ public class Threads extends Thread {
     }
 
     public static void main(String[] args) {
-        SharedBathroom bathroom = new SharedBathroom();
+        SharedBathroom  bathroom = new SharedBathroom();
 
         int maximum_threads = 10;
         for (int i = 0; i < maximum_threads; i++) {
@@ -53,8 +53,7 @@ public class Threads extends Thread {
 
     public void womanQueue(SharedBathroom bathroom) {
 
-        System.out.println("Woman: " + Thread.currentThread().threadId() + " in queue");
-        bathroom.womanEnter();
+        System.out.println("Woman: " + Thread.currentThread().threadId() + " in queue");;        bathroom.womanEnter();
         threadSleep(maxSleepBathroom);
         bathroom.womenExit();
 
@@ -63,7 +62,8 @@ public class Threads extends Thread {
     public void manQueue(SharedBathroom bathroom) {
         System.out.println("Man: " + Thread.currentThread().threadId() + " in queue");
         bathroom.manEnter();
-        threadSleep(maxSleepBathroom);
+
+                threadSleep(maxSleepBathroom);
         bathroom.manExit();
 
     }

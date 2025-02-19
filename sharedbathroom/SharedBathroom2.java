@@ -1,6 +1,6 @@
 package sharedbathroom;
 
-public class SharedBathroom {
+public class SharedBathroom2 {
 
     private volatile boolean womenTurn;
     private volatile boolean menTurn;
@@ -9,7 +9,7 @@ public class SharedBathroom {
     private volatile int nrOfWomenInQueue;
     private volatile int nrOfMenInQueue;
 
-    public SharedBathroom() {
+    public SharedBathroom2() {
         this.womenTurn = false;
         this.menTurn = false;
         this.nrOfWomenInBathroom = 0;
@@ -122,9 +122,8 @@ public class SharedBathroom {
     public synchronized void womenExit() {
         decreaseWomen();
         System.out.println("Woman: " + Thread.currentThread().threadId() + " exits bathroom");
-        System.out.println("Women in queue: " +  getNrOfWomenInQueue());
 
-        if (getNrOfWomenInBathroom () == 0){
+        if (getNrOfWomenInBathroom () == 0 && getNrOfWomenInQueue() ==0){
            
             setWomenTurn(false);
             notifyAll();
@@ -144,7 +143,7 @@ public class SharedBathroom {
         decreaseMen();
         System.out.println("Man: " + Thread.currentThread().threadId() + " exits bathroom");
         
-        if (getNrOfMenInBathroom() == 0) {
+        if (getNrOfMenInBathroom() == 0 && getNrOfMenInQueue() == 0) {
             setMenTurn(false);
             notifyAll();
             System.out.println();

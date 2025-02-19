@@ -122,8 +122,9 @@ public class SharedBathroom2 {
     public synchronized void womenExit() {
         decreaseWomen();
         System.out.println("Woman: " + Thread.currentThread().threadId() + " exits bathroom");
+        System.out.println("Women in queue: " +  getNrOfWomenInQueue());
 
-        if (getNrOfWomenInBathroom () == 0 && getNrOfWomenInQueue() ==0){
+        if (getNrOfWomenInBathroom () == 0){
            
             setWomenTurn(false);
             notifyAll();
@@ -143,7 +144,7 @@ public class SharedBathroom2 {
         decreaseMen();
         System.out.println("Man: " + Thread.currentThread().threadId() + " exits bathroom");
         
-        if (getNrOfMenInBathroom() == 0 && getNrOfMenInQueue() == 0) {
+        if (getNrOfMenInBathroom() == 0) {
             setMenTurn(false);
             notifyAll();
             System.out.println();
@@ -155,5 +156,6 @@ public class SharedBathroom2 {
             notifyAll();
          }
     }
+
 
 }

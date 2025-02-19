@@ -1,11 +1,13 @@
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Random;
 
 import sharedbathroom.SharedBathroom;
 
 public class Threads extends Thread {
 
-    long maxSleep = 5000;
-    long maxSleepBathroom = 3000;
+    long maxSleep = 100000;
+    long maxSleepBathroom = 70000;
 
     SharedBathroom bathroom;
 
@@ -27,11 +29,12 @@ public class Threads extends Thread {
 
         Random random = new Random();
         long sleep = 0;
+        long min = 10000;
         while (sleep == 0) {
             sleep = random.nextLong(sleepTime);
         }
         try {
-            Thread.sleep(sleep);
+            Thread.sleep(sleep + min);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -52,18 +55,19 @@ public class Threads extends Thread {
     }
 
     public void womanQueue(SharedBathroom bathroom) {
-
-        System.out.println("Woman: " + Thread.currentThread().threadId() + " in queue");;        bathroom.womanEnter();
+        System.out.println("Woman: " + Thread.currentThread().threadId() + " enters queue at time: " +
+        new Timestamp(new Date().getTime()));
+        bathroom.womanEnter();
         threadSleep(maxSleepBathroom);
         bathroom.womenExit();
 
     }
 
     public void manQueue(SharedBathroom bathroom) {
-        System.out.println("Man: " + Thread.currentThread().threadId() + " in queue");
+        System.out.println("Man: " + Thread.currentThread().threadId() + " enters queue at time: " +
+        new Timestamp(new Date().getTime()));
         bathroom.manEnter();
-
-                threadSleep(maxSleepBathroom);
+        threadSleep(maxSleepBathroom);
         bathroom.manExit();
 
     }
